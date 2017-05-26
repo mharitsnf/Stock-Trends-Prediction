@@ -1,0 +1,13 @@
+setwd("~/DSAFinalProject/")
+mandiri <- read.csv("Data/bmri_2005.csv")
+mandiri$Volume <- as.numeric(mandiri$Volume)
+mandiri <- mandiri[,-1]
+mandiri$Mean <- rowMeans(mandiri[,5:6])
+mandiri$Day <- factor(mandiri$Day)
+mandiri$Month <- factor(mandiri$Month)
+mandiri$Year <- factor(mandiri$Year)
+mandiri$Open <- as.numeric(mandiri$Open)
+mandiri$High <- as.numeric(mandiri$High)
+mandiri$Low <- as.numeric(mandiri$Low)
+mandiri$Close <- as.numeric(mandiri$Close)
+str(mandiri)
