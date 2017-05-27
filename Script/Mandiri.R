@@ -10,6 +10,7 @@ library(sqldf)
 
 #Preprocessing data
 mandiri <- mandiri[,-1]
+mandiri$ID <- seq.int(nrow(mandiri))
 mandiri$Mean <- rowMeans(mandiri[,5:6])
 mandiri$Day <- as.numeric(mandiri$Day)
 mandiri$Month <- as.character(mandiri$Month)
@@ -19,9 +20,9 @@ mandiri$High <- as.numeric(mandiri$High)
 mandiri$Low <- as.numeric(mandiri$Low)
 mandiri$Close <- as.numeric(mandiri$Close)
 mandiri$Volume <- as.numeric(mandiri$Volume)
-mandiri$MonthIndex <- revalue(mandiri$Month, c("5"="1", "6"="2", "7"="3", "8"="4", "9"="5", "10"="6", "11"="7", "12"="8", "1"="9", "2"="10", "3"="11", "4"="12"))
-mandiri$Month <- factor(mandiri$Month)
-mandiri$MonthIndex <- factor(mandiri$MonthIndex)
+#mandiri$MonthIndex <- revalue(mandiri$Month, c("5"="1", "6"="2", "7"="3", "8"="4", "9"="5", "10"="6", "11"="7", "12"="8", "1"="9", "2"="10", "3"="11", "4"="12"))
+#mandiri$Month <- factor(mandiri$Month)
+#mandiri$MonthIndex <- factor(mandiri$MonthIndex)
 str(mandiri)
 
 #Function for creating yearly observations (Aggregating)
@@ -41,6 +42,7 @@ yearlyMandiri <- function() {
   return(newDf)
 }
 mandiri_year <- yearlyMandiri()
+mandiri_year$ID <- seq.int(nrow(mandiri_year))
 
 #Function for creating monthly observation (Aggregating)
 monthlyMandiri <- function() {
@@ -62,6 +64,8 @@ monthlyMandiri <- function() {
   return(newDf)
 }
 mandiri_monthly <- monthlyMandiri()
+mandiri_monthly$ID <- seq.int(nrow(mandiri_monthly))
+
 
 #Data normalization
 norm_mandiri_year <- as.data.frame(scale(mandiri_year[2:7]))
@@ -85,3 +89,6 @@ me
 rmse
 mape
 
+#Plotting
+plot(ID, Mean, main="Scatterplot Example", xlab="Time ", ylab="Mean ", pch=20)
+abline(lm(Mean~ID), col="red")
