@@ -1,94 +1,69 @@
-#Before doing this, I've do some wrangling: sorting the data
-#based on year
+#Sorting the data based on year done in excel
 setwd("~/DSAFinalProject/")
 mandiri <- read.csv("Data/bmri_2005.csv")
 
 #Installing packages
 install.packages("plyr", "sqldf")
-library(plyr)
-library(sqldf)
+library(plyr) #for data manipulation
+library(sqldf) #for querying with sql syntax
 
 #Preprocessing data
-mandiri <- mandiri[,-1]
-mandiri$ID <- seq.int(nrow(mandiri))
-mandiri$Mean <- rowMeans(mandiri[,5:6])
+mandiri <- mandiri[,-1] #deleting
+mandiri$Mean <- rowMeans(mandiri[,5:6]) #Calculating mean from high and low feature
+mandiri$ID <- seq.int(nrow(mandiri)) #adding ID column and changing data types
 mandiri$Day <- as.numeric(mandiri$Day)
-mandiri$Month <- as.character(mandiri$Month)
-mandiri$Year <- factor(mandiri$Year)
+mandiri$Month <- as.numeric(mandiri$Month)
+mandiri$Year <- as.numeric(mandiri$Year)
 mandiri$Open <- as.numeric(mandiri$Open)
 mandiri$High <- as.numeric(mandiri$High)
 mandiri$Low <- as.numeric(mandiri$Low)
 mandiri$Close <- as.numeric(mandiri$Close)
 mandiri$Volume <- as.numeric(mandiri$Volume)
-#mandiri$MonthIndex <- revalue(mandiri$Month, c("5"="1", "6"="2", "7"="3", "8"="4", "9"="5", "10"="6", "11"="7", "12"="8", "1"="9", "2"="10", "3"="11", "4"="12"))
-#mandiri$Month <- factor(mandiri$Month)
-#mandiri$MonthIndex <- factor(mandiri$MonthIndex)
 str(mandiri)
 
-#Function for creating yearly observations (Aggregating)
-yearlyMandiri <- function() {
-  newDf <- data.frame(Year = factor(), Open = numeric(), High = numeric(), Low = numeric(), Close = numeric(), Volume = numeric(), Mean = numeric())
-  for (year in levels(mandiri$Year)) {
-    tmpdata <- sqldf(strwrap(sprintf("SELECT * FROM mandiri WHERE Year = %s", year)))
-    tmpOpen <- mean(tmpdata$Open)
-    tmpHigh <- mean(tmpdata$High)
-    tmpLow <- mean(tmpdata$Low)
-    tmpClose <- mean(tmpdata$Close)
-    tmpVolume <- mean(tmpdata$Volume)
-    tmpMean <- mean(tmpdata$Mean)
-    insertdf <- data.frame(Year = year, Open = tmpOpen, High = tmpHigh, Low = tmpLow, Close = tmpClose, Volume = tmpVolume, Mean = tmpMean)
-    newDf <- rbind(newDf, insertdf)
-  }
-  return(newDf)
-}
-mandiri_year <- yearlyMandiri()
-mandiri_year$ID <- seq.int(nrow(mandiri_year))
-
-#Function for creating monthly observation (Aggregating)
-monthlyMandiri <- function() {
-  newDf <- data.frame(Month = factor(), Year = factor(), Open = numeric(), High = numeric(), Low = numeric(), Close = numeric(), Volume = numeric(), Mean = numeric())
-  for (year in levels(mandiri$Year)) {
-    for (month in levels(mandiri$Month)) {
-      tmpdata <- sqldf(strwrap(sprintf("SELECT * FROM mandiri WHERE Year = %s AND Month = %s", year, month)))
-      tmpOpen <- mean(tmpdata$Open)
-      tmpHigh <- mean(tmpdata$High)
-      tmpLow <- mean(tmpdata$Low)
-      tmpClose <- mean(tmpdata$Close)
-      tmpVolume <- mean(tmpdata$Volume)
-      tmpMean <- mean(tmpdata$Mean)
-      insertdf <- data.frame(Month = month, Year = year, Open = tmpOpen, High = tmpHigh, Low = tmpLow, Close = tmpClose, Volume = tmpVolume, Mean = tmpMean)
-      newDf <- rbind(newDf, insertdf)
-    }
-  }
-  newDf <- na.omit(newDf)
-  return(newDf)
-}
-mandiri_monthly <- monthlyMandiri()
-mandiri_monthly$ID <- seq.int(nrow(mandiri_monthly))
-
-
 #Data normalization
-norm_mandiri_year <- as.data.frame(scale(mandiri_year[2:7]))
+norm_mandiri <- as.data.frame(scale(mandiri[4:9])) #normalize the data
 
-#Making models and doing regression
-set.seed(666)
-n <- length(norm_mandiri_year$Mean)
-n1 <- 10
-n2 <- n-n1
-train <- sample(1:n,n1)
-model1 <- lm(Mean~Volume, norm_mandiri_year[train, ])
-summary(model1)
-pred <- predict(model1, newdat = norm_mandiri_year[-train,])
-obs <- norm_mandiri_year$Mean[-train]
-diff <- obs-pred
-percdiff <- abs(diff)/obs
-me <- mean(diff)
-rmse <- sqrt(sum(diff**2)/n2)
-mape <- 100*(mean(percdiff))
-me
-rmse
-mape
+#K-Fold Cross Validation, checking errors
+install.packages("cvTools", "e1071")
+library(cvTools) #install package for k-fold cross validation
+library(e1071)
+k <- 10 #using 10 folds
+folds <- cvFolds(NROW(norm_mandiri), K=k)
+errors <- data.frame(me = double(), rmse = double(), mape = double()) #dataframe for collecting the errors
+for(i in 1:k){
+  data_train <- norm_mandiri[folds$subsets[folds$which != i], ]
+  data_test <- norm_mandiri[folds$subsets[folds$which == i], ]
+  model <- lm(Mean ~ Volume + Low, data_train) #making model from training
+  pred <- predict(model, newdat=data_test) #making model from testing
+  obs <- data_test$Mean
+  diff <- obs-pred
+  percdiff <- abs(diff)/obs
+  me <- mean(diff) #calculating errors
+  rmse <- sqrt(sum(diff**2)/nrow(data_test))
+  mape <- 100*(mean(percdiff))
+  error_row <- data.frame(me = me, rmse = rmse, mape = mape)
+  errors <- rbind(errors, error_row)
+}
+
+#Add new row to norm_mandiri
+last_open <- norm_mandiri$Open[nrow(norm_mandiri)]
+last_high <- norm_mandiri$High[nrow(norm_mandiri)]
+last_low <- norm_mandiri$Low[nrow(norm_mandiri)]
+last_close <- norm_mandiri$Close[nrow(norm_mandiri)]
+last_volume <- norm_mandiri$Volume[nrow(norm_mandiri)]
+last_mean <- norm_mandiri$Mean[nrow(norm_mandiri)]
+norm_mandiri[nrow(norm_mandiri) + 1, ] <- c(last_open, last_high, last_low, last_close, last_volume, last_mean)
+
+#Predicting
+pred_train <- norm_mandiri[1:nrow(norm_mandiri)-1, ] #training data using all but the newest data
+pred_test <- norm_mandiri[nrow(norm_mandiri), ] #testing data using the last data
+pred_model <- lm(Mean ~ Volume + Low, pred_train)
+res <- predict(pred_model, newdat=pred_test)
+norm_mandiri$Mean[nrow(norm_mandiri)] <- res
 
 #Plotting
+norm_mandiri$ID <- seq.int(nrow(norm_mandiri))
+attach(norm_mandiri)
 plot(ID, Mean, main="Scatterplot Example", xlab="Time ", ylab="Mean ", pch=20)
 abline(lm(Mean~ID), col="red")
