@@ -53,6 +53,10 @@ for(i in 1:k){
   error_row <- data.frame(me = me, rmse = rmse, mape = mape)
   errors <- rbind(errors, error_row)
 }
+me
+rmse
+mape
+errors
 
 #Add new row to norm_bbni_2005
 last_open <- norm_bbni_2005$Open[nrow(norm_bbni_2005)]

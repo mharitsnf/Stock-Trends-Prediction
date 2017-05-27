@@ -76,6 +76,10 @@ for(i in 1:k){
   error_row <- data.frame(me = me, rmse = rmse, mape = mape)
   errors <- rbind(errors, error_row)
 }
+me
+rmse
+mape
+errors
 
 #Add new row to norm_bbni_2005_monthly
 last_open <- norm_bbni_2005_monthly$Open[nrow(norm_bbni_2005_monthly)]
@@ -97,5 +101,5 @@ norm_bbni_2005_monthly$Mean[nrow(norm_bbni_2005_monthly)] <- res
 #Plotting
 norm_bbni_2005_monthly$ID <- seq.int(nrow(norm_bbni_2005_monthly))
 attach(norm_bbni_2005_monthly)
-plot(ID, Mean, main="Scatterplot Example", xlab="Time ", ylab="Mean ", pch=20)
-abline(lm(Mean~ID), col="red")
+plot(norm_bbni_2005_monthly$ID, norm_bbni_2005_monthly$Mean, main="Scatterplot Example", xlab="Time ", ylab="Mean ", pch=20)
+abline(lm(norm_bbni_2005_monthly$Mean~norm_bbni_2005_monthly$ID), col="red")
