@@ -1,5 +1,6 @@
 #Sorting the data based on year done in excel
-bbri <- read.csv("bbri.csv")
+setwd("~/DSAFinalProject/")
+bbri <- read.csv("Data/bbri_2005.csv")
 
 #Installing packages
 install.packages("plyr")
