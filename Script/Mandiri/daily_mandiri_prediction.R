@@ -60,7 +60,7 @@ pred_train <- norm_mandiri[1:nrow(norm_mandiri)-1, ] #training data using all bu
 pred_test <- norm_mandiri[nrow(norm_mandiri), ] #testing data using the last data
 pred_model <- lm(Mean ~ Volume + Low, pred_train)
 res <- predict(pred_model, newdat=pred_test)
-norm_mandiri$Mean[nrow(norm_mandiri)] <- res
+norm_mandiri$Mean[nrow(norm_mandiri)] <- res #result prediction inserted into normalized data
 
 #Plotting
 norm_mandiri$ID <- seq.int(nrow(norm_mandiri))
