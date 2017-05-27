@@ -38,7 +38,7 @@ for(i in 1:k){
   pred <- predict(model, newdat=data_test) #making model from testing
   obs <- data_test$Mean
   diff <- obs-pred
-  percdiff <- abs(diff)/obs
+  percdiff <- abs(diff)/abs(obs)
   me <- mean(diff) #calculating errors
   rmse <- sqrt(sum(diff**2)/nrow(data_test))
   mape <- 100*(mean(percdiff))
@@ -67,3 +67,4 @@ norm_mandiri$ID <- seq.int(nrow(norm_mandiri))
 attach(norm_mandiri)
 plot(ID, Mean, main="Scatterplot Example", xlab="Time ", ylab="Mean ", pch=20)
 abline(lm(Mean~ID), col="red")
+detach(norm_mandiri)

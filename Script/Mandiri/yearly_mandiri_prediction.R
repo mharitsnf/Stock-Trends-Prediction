@@ -35,7 +35,7 @@ for(i in 1:k){
   pred <- predict(model, newdat=data_test) #making model from testing
   obs <- data_test$Mean
   diff <- obs-pred
-  percdiff <- abs(diff)/obs
+  percdiff <- abs(diff)/abs(obs)
   me <- mean(diff) #calculating errors
   rmse <- sqrt(sum(diff**2)/nrow(data_test))
   mape <- 100*(mean(percdiff))
@@ -57,6 +57,7 @@ pred_train <- norm_yearly_mandiri[1:nrow(norm_yearly_mandiri)-1, ]
 pred_test <- norm_yearly_mandiri[nrow(norm_yearly_mandiri), ]
 pred_model <- lm(Mean ~ Volume + Low, pred_train)
 res <- predict(pred_model, newdat=pred_test)
+res
 norm_yearly_mandiri$Mean[nrow(norm_yearly_mandiri)] <- res
 
 #Visualize the data

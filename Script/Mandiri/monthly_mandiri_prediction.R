@@ -35,7 +35,7 @@ for(i in 1:k){
   pred <- predict(model, newdat=data_test) #making model from testing
   obs <- data_test$Mean
   diff <- obs-pred
-  percdiff <- abs(diff)/obs
+  percdiff <- abs(diff)/abs(obs)
   me <- mean(diff) #calculating errors
   rmse <- sqrt(sum(diff**2)/nrow(data_test))
   mape <- 100*(mean(percdiff))
