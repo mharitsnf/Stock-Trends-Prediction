@@ -64,7 +64,8 @@ norm_mandiri$Mean[nrow(norm_mandiri)] <- res #result prediction inserted into no
 
 #Plotting
 norm_mandiri$ID <- seq.int(nrow(norm_mandiri))
-attach(norm_mandiri)
+norm_mandiri_last_100 <- norm_mandiri[2827:2927, ]
+attach(norm_mandiri_last_100)
 plot(ID, Mean, main="Scatterplot Example", xlab="Time ", ylab="Mean ", pch=20)
 abline(lm(Mean~ID), col="red")
-detach(norm_mandiri)
+detach(norm_mandiri_last_100)
